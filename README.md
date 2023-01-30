@@ -2,10 +2,6 @@
 
 ## Triangular Arbitrage on BTC and ETH with Alpaca
 
-### Background
-
-With the exciting announcement of Alpaca’s coin pair trading, we introduce a triangular arbitrage strategy using BTC/USD, ETH/USD, and the new BTC/ETH coin pair to attempt to profit from potential differences between price conversions. 
-
 ### What is Triangular Arbitrage?
 
 Triangular Arbitrage is an arbitrage opportunity that appears between three currencies that don’t have equivalent conversion rates. Traders can buy the cheaper currency, convert it to a more expensive currency, and then sell the expensive currency - this typically happens across different exchanges. For example: 
