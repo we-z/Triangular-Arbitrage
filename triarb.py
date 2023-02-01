@@ -88,14 +88,11 @@ async def check_arb():
                 else:
                     post_Alpaca_order("ETH/BTC", BUY_ETHBTC, "sell")
                     print("Bad Order 3")
-                    exit()
             else:
                 post_Alpaca_order("BTCUSD", BUY_BTC, "sell")
                 print("Bad Order 2")
-                exit()
         else:
             print("Bad Order 1")
-            exit()
 
     # when ETHUSD is cheaper
     elif DIV < ETHBTC * (1 - min_arb_percent/100):
@@ -110,14 +107,11 @@ async def check_arb():
                 else:
                     post_Alpaca_order("ETH/BTC", SELL_ETHBTC, "buy")  
                     print("Bad Order 3")                
-                    exit()
             else:
                 post_Alpaca_order("ETHUSD", BUY_ETH, "sell")
                 print("Bad Order 2")
-                exit()     
         else:
             print("Bad order 1")
-            exit()
     else:
         print("No arb opportunity, spread: {}".format(spread * 100))
         spreads.append(spread)
