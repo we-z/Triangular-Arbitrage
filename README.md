@@ -239,21 +239,3 @@ Here is $3 of risk-free profit (not including fees).
 Considerations:
 Fees & Trading Volume:
 Arbitrage opportunities are ultimately a game of trading volume and fees. Because profit margins tend to be <1% of the trade amount, traders can best capitalize on Triangular Arbitrage with high trading volume. 
-
-At the same time, exercise your best judgment as a trader with respect to fees. Know at what minimum arbitrage percent and trading volume your trades will be profitable. Check out Alpaca's Updated Crypto Fees, and as always, make sure to backtest your strategies fully. 
-
-
-Sources:
-https://www.investopedia.com/terms/t/triangulararbitrage.asp#:~:text=Triangular%20arbitrage%20is%20the%20result,programs%20to%20automate%20the%20process.
-
-
-
-Please note that this article is for general informational purposes only. All screenshots are for illustrative purposes only. Actual currency exchange and crypto prices may vary depending on the market price at that particular time. Alpaca does not recommend any specific cryptocurrencies.
-
-Cryptocurrency services are made available by Alpaca Crypto LLC ("Alpaca Crypto"), a FinCEN registered money services business (NMLS # 2160858), and a wholly-owned subsidiary of AlpacaDB, Inc. Alpaca Crypto is not a member of SIPC or FINRA. Cryptocurrencies are not stocks and your cryptocurrency investments are not protected by either FDIC or SIPC. Depending on your location, cryptocurrency services may be provided by West Realm Shires Services, Inc., d/b/a FTX US (NMLS #1957771). 
- 
-This is not an offer, solicitation of an offer, or advice to buy or sell cryptocurrencies, or open a cryptocurrency account in any jurisdiction where Alpaca Crypto, or FTX US respectively, are not registered or licensed, as applicable.
- 
-Cryptocurrency is highly speculative in nature, involves a high degree of risks, such as volatile market price swings, market manipulation, flash crashes, and cybersecurity risks. Cryptocurrency is not regulated or is lightly regulated in most countries. Cryptocurrency trading can lead to large, immediate and permanent loss of financial value. You should have appropriate knowledge and experience before engaging in cryptocurrency trading. For additional information, please click here.
- 
-Please see alpaca.markets and Alpaca’s Disclosure Library for more information.
