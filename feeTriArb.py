@@ -1,4 +1,3 @@
-import alpaca_trade_api as alpaca
 import requests
 import asyncio
 import config
@@ -13,11 +12,6 @@ HEADERS = {'APCA-API-KEY-ID': API_KEY,
 ALPACA_BASE_URL = 'https://paper-api.alpaca.markets'
 DATA_URL = 'https://data.alpaca.markets'
 
-# initiate alpaca connection
-rest_api = alpaca.REST(API_KEY, SECRET_KEY, ALPACA_BASE_URL)
-
-# initialize spreads and prices
-spreads = []
 prices = {
     'ETH/USD' : 0,
     'BTC/USD' : 0,
@@ -69,11 +63,8 @@ async def check_arb():
     BTC = prices['BTC/USD']
     ETHBTC = prices['ETH/BTC']
     DIV = ETH / BTC 
-    spread = abs(DIV - ETHBTC)
     BUY_ETH = 1000 / ETH
-    BUY_BTC = 1000 / BTC 
-    BUY_ETHBTC = BUY_BTC / ETHBTC
-    SELL_ETHBTC = BUY_ETH / ETHBTC
+    BUY_BTC = 1000 / BTC
     
     # when BTCUSD is cheaper
     if DIV > ETHBTC * (1 + min_arb_percent/100):
@@ -84,7 +75,6 @@ async def check_arb():
                 order3 = liquidate()
                 if order3.status_code == 207:
                     print("Done (type 1) eth: {} btc: {} ethbtc {}".format(ETH, BTC, ETHBTC))
-                    print("Spread: +{}".format(spread * 100))
                 else:
                     liquidate()
                     print("Bad Order 3 BTC")
@@ -103,7 +93,6 @@ async def check_arb():
                 order3 = liquidate() 
                 if order3.status_code == 207:
                     print("Done (type 2) eth: {} btc: {} ethbtc {}".format(ETH, BTC, ETHBTC))
-                    print("Spread: -{}".format(spread * 100))
                 else:
                     liquidate()
                     print("Bad Order 3 ETH")                
