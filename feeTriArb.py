@@ -19,9 +19,9 @@ rest_api = alpaca.REST(API_KEY, SECRET_KEY, ALPACA_BASE_URL)
 # initialize spreads and prices
 spreads = []
 prices = {
-    'SOL/USD' : 0,
+    'ETH/USD' : 0,
     'BTC/USD' : 0,
-    'SOL/BTC' : 0
+    'ETH/BTC' : 0
 }
 
 # time between each quote & arb percent
@@ -30,9 +30,9 @@ min_arb_percent = 1
 
 async def main():
         while True:
-            task1 = loop.create_task(get_quote("SOL/USD"))
+            task1 = loop.create_task(get_quote("ETH/USD"))
             task2 = loop.create_task(get_quote("BTC/USD"))
-            task3 = loop.create_task(get_quote("SOL/BTC"))
+            task3 = loop.create_task(get_quote("ETH/BTC"))
             # Wait for the tasks to finish
             await asyncio.wait([task1, task2, task3])
             await check_arb()
@@ -65,9 +65,9 @@ async def check_arb():
     Check to see if an arbitrage condition exists
     '''
 
-    ETH = prices['SOL/USD']
+    ETH = prices['ETH/USD']
     BTC = prices['BTC/USD']
-    ETHBTC = prices['SOL/BTC']
+    ETHBTC = prices['ETH/BTC']
     DIV = ETH / BTC 
     spread = abs(DIV - ETHBTC)
     BUY_ETH = 1000 / ETH
@@ -79,7 +79,7 @@ async def check_arb():
     if DIV > ETHBTC * (1 + min_arb_percent/100):
         order1 = post_Alpaca_order("BTCUSD", BUY_BTC, "buy")
         if order1.status_code == 200:
-            order2 = post_Alpaca_order("SOL/BTC", (BUY_ETH * 0.95),  "buy")
+            order2 = post_Alpaca_order("ETH/BTC", (BUY_ETH * 0.95),  "buy")
             if order2.status_code == 200:
                 order3 = liquidate()
                 if order3.status_code == 207:
@@ -96,9 +96,9 @@ async def check_arb():
             print("Bad Order 1 BTC")
     # when ETHUSD is cheaper
     elif DIV < ETHBTC * (1 - min_arb_percent/100):
-        order1 = post_Alpaca_order("SOLUSD", BUY_ETH, "buy")
+        order1 = post_Alpaca_order("ETHUSD", BUY_ETH, "buy")
         if order1.status_code == 200:
-            order2 = post_Alpaca_order("SOL/BTC", (BUY_ETH * 0.9975), "sell")
+            order2 = post_Alpaca_order("ETH/BTC", (BUY_ETH * 0.9975), "sell")
             if order2.status_code == 200:
                 order3 = liquidate() 
                 if order3.status_code == 207:
