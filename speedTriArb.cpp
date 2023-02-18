@@ -1,79 +1,85 @@
 #include <iostream>
-#include <cpprest/http_client.h>
-#include <cpprest/json.h>
-#include <cpprest/uri.h>
-#include <cpprest/ws_client.h>
-#include <cpprest/containerstream.h>
-#include <cpprest/filestream.h>
-#include <cpprest/http_listener.h>
-#include <cpprest/producerconsumerstream.h>
+#include <string>
+#include <curl/curl.h>
+#include "config.hpp"
 
-using namespace web;
-using namespace web::http;
-using namespace web::http::client;
-using namespace web::json;
+using namespace std;
 
 // Alpaca Constants
-const std::string API_KEY = config::API_KEY;
-const std::string SECRET_KEY = config::SECRET_KEY;
+const string API_KEY = Config::API_KEY;
+const string SECRET_KEY = Config::SECRET_KEY;
+const string ALPACA_BASE_URL = "https://paper-api.alpaca.markets";
+const string DATA_URL = "https://data.alpaca.markets";
+const double min_arb_percent = 0.1;
 
-http_request make_request(method mtd, const std::string& url) {
-    http_request req(mtd);
-    req.headers().add("APCA-API-KEY-ID", API_KEY);
-    req.headers().add("APCA-API-SECRET-KEY", SECRET_KEY);
-    req.set_request_uri(url);
-    return req;
+// Callback function for CURL
+size_t write_callback(char* ptr, size_t size, size_t nmemb, string* data)
+{
+    size_t realsize = size * nmemb;
+    data->append(ptr, realsize);
+    return realsize;
 }
 
-web::json::value get_response(const http_response& response) {
-    if (response.status_code() != 200) {
-        throw std::runtime_error("Undesirable response from Alpaca!");
+// Function to get quote data from Alpaca API
+double get_quote(string symbol)
+{
+    try
+    {
+        // initialize CURL
+        CURL* curl = curl_easy_init();
+
+        // set CURL options
+        string url = DATA_URL + "/v1beta3/crypto/us/latest/trades?symbols=" + symbol;
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_slist_append(NULL, ("APCA-API-KEY-ID: " + API_KEY).c_str()));
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_slist_append(NULL, ("APCA-API-SECRET-KEY: " + SECRET_KEY).c_str()));
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+
+        // make the request
+        string response_string;
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        CURLcode res = curl_easy_perform(curl);
+
+        // check for errors
+        if (res != CURLE_OK)
+        {
+            cout << "There was an issue getting trade quote from Alpaca: " << curl_easy_strerror(res) << endl;
+            return false;
+        }
+
+        // parse the JSON response
+        string start_key = "\"p\":";
+        size_t start = response_string.find(start_key) + start_key.length();
+        size_t end = response_string.find(",", start);
+        string price_string = response_string.substr(start, end - start);
+        return stod(price_string);
     }
-    return response.extract_json().get();
-}
-
-pplx::task<web::json::value> get_quote(const std::string& symbol, http_client& client) {
-    const std::string url = "https://data.alpaca.markets/v1beta3/crypto/us/latest/trades?symbols=" + symbol;
-    return client.request(make_request(methods::GET, url)).then(get_response);
-}
-
-pplx::task<void> check_arb(web::json::value& prices, http_client& client) {
-    // Get the prices
-    double ETH = prices.at(U("ETH/USD")).as_double();
-    double BTC = prices.at(U("BTC/USD")).as_double();
-    double ETHBTC = prices.at(U("ETH/BTC")).as_double();
-    double DIV = ETH / BTC;
-    double BUY_ETH = 1000 / ETH;
-    double BUY_BTC = 1000 / BTC;
-
-    // When BTCUSD is cheaper
-    if (DIV > ETHBTC * (1 + min_arb_percent / 100)) {
-        return post_Alpaca_order("BTCUSD", BUY_BTC, "buy", client).then([=](http_response order1) {
-            if (order1.status_code() == 200) {
-                return post_Alpaca_order("ETH/BTC", BUY_ETH * 0.95, "buy", client).then([=](http_response order2) {
-                    if (order2.status_code() == 200) {
-                        return liquidate(client).then([=](http_response order3) {
-                            if (order3.status_code() == 207) {
-                                std::cout << "Done (type 1) eth: " << ETH << " btc: " << BTC << " ethbtc " << ETHBTC << std::endl;
-                            }
-                            else {
-                                liquidate(client).then([](http_response) {
-                                    std::cout << "Bad Order 3 BTC" << std::endl;
-                                });
-                            }
-                        });
-                    }
-                    else {
-                        liquidate(client).then([=](http_response) {
-                            std::cout << order2.to_string() << std::endl;
-                            std::cout << "Bad Order 2 BTC" << std::endl;
-                        });
-                    }
-                });
-            }
-            else {
-                std::cout << "Bad Order 1 BTC" << std::endl;
-                return pplx::task_from_result();
-            }
-        });
+    catch (exception const& e)
+    {
+        cout << "There was an issue getting trade quote from Alpaca: " << e.what() << endl;
+        return false;
     }
+}
+
+// Function to post an order to Alpaca
+bool post_Alpaca_order(string symbol, int qty, string side)
+{
+    try
+    {
+        // initialize CURL
+        CURL* curl = curl_easy_init();
+
+        // set CURL options
+        curl_easy_setopt(curl, CURLOPT_URL, (ALPACA_BASE_URL + "/v2/orders").c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_slist_append(NULL, ("APCA-API-KEY-ID: " + API_KEY).c_str()));
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, curl_slist_append(NULL, ("APCA-API-SECRET-KEY: " + SECRET_KEY).c_str()));
+        curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, ("symbol=" + symbol + "&qty=" + to_string(qty) + "&side=" + side + "&type=market&time_in_force=gtc").c_str());
+
+        // make the request
+        CURLcode res = curl_easy_perform(curl);
+
+        // check for errors
+        if (res != CURLE_OK)
+        {
+            cout << "There was an issue posting order to Alpaca
